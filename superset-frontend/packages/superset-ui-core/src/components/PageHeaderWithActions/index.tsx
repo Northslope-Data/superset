@@ -82,6 +82,15 @@ const headerStyles = (theme: SupersetTheme) => css`
     display: flex;
     align-items: center;
   }
+
+  /* Mobile: center the title between left and right panels */
+  @media (max-width: 767px) {
+    .title-panel {
+      flex: 1;
+      justify-content: center;
+      margin-right: 0;
+    }
+  }
 `;
 
 const buttonsStyles = (theme: SupersetTheme) => css`
@@ -109,6 +118,7 @@ export type PageHeaderWithActionsProps = {
   showFaveStar: boolean;
   showMenuDropdown?: boolean;
   faveStarProps: FaveStarProps;
+  leftPanelItems?: ReactNode;
   titlePanelAdditionalItems: ReactNode;
   rightPanelAdditionalItems: ReactNode;
   additionalActionsMenu: ReactElement;
@@ -126,6 +136,7 @@ export const PageHeaderWithActions = memo(
     certificatiedBadgeProps,
     showFaveStar,
     faveStarProps,
+    leftPanelItems,
     titlePanelAdditionalItems,
     rightPanelAdditionalItems,
     additionalActionsMenu,
@@ -136,6 +147,7 @@ export const PageHeaderWithActions = memo(
     const theme = useTheme();
     return (
       <div css={headerStyles} className="header-with-actions">
+        {leftPanelItems}
         <div className="title-panel">
           <DynamicEditableTitle {...editableTitleProps} />
           {showTitlePanelItems && (

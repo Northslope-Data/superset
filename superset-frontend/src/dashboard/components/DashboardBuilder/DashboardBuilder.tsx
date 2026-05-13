@@ -23,7 +23,12 @@ import { t } from '@apache-superset/core/translation';
 import { addAlpha, JsonObject, useElementOnScreen } from '@superset-ui/core';
 import { css, styled, useTheme } from '@apache-superset/core/theme';
 import { useDispatch, useSelector } from 'react-redux';
-import { EmptyState, Loading } from '@superset-ui/core/components';
+import {
+  Drawer,
+  EmptyState,
+  Grid,
+  Loading,
+} from '@superset-ui/core/components';
 import { ErrorBoundary, BasicErrorAlert } from 'src/components';
 import BuilderComponentPane from 'src/dashboard/components/BuilderComponentPane';
 import DashboardHeader from 'src/dashboard/components/Header';
@@ -142,9 +147,8 @@ const DashboardContentWrapper = styled.div`
       & .dashboard-component-tabs {
         box-shadow: 0 ${theme.sizeUnit}px ${theme.sizeUnit}px 0
           ${addAlpha(theme.colorBorderSecondary, 0.1)};
-        padding-left: ${
-          theme.sizeUnit * 2
-        }px; /* note this is added to tab-level padding, to match header */
+        padding-left: ${theme.sizeUnit *
+        2}px; /* note this is added to tab-level padding, to match header */
       }
 
       .dropdown-toggle.btn.btn-primary .caret {
@@ -297,14 +301,12 @@ const StyledDashboardContent = styled.div<{
       margin: ${theme.sizeUnit * 4}px;
       margin-left: ${marginLeft}px;
 
-      ${
-        editMode &&
-        `
+      ${editMode &&
+      `
       max-width: calc(100% - ${
         BUILDER_SIDEPANEL_WIDTH + theme.sizeUnit * 16
       }px);
-    `
-      }
+    `}
 
       /* this is the ParentSize wrapper */
     & > div:first-of-type {
@@ -341,10 +343,8 @@ const StyledDashboardContent = styled.div<{
       }
 
       &.fade-out {
-        box-shadow: ${
-          theme.dashboardTileBoxShadow ??
-          `0 0 0 1px ${addAlpha(theme.colorBorder, 0.5)}`
-        };
+        box-shadow: ${theme.dashboardTileBoxShadow ??
+        `0 0 0 1px ${addAlpha(theme.colorBorder, 0.5)}`};
       }
 
       & .missing-chart-container {
@@ -372,6 +372,10 @@ const DashboardBuilder = () => {
   const dispatch = useDispatch();
   const uiConfig = useUiConfig();
   const theme = useTheme();
+  // Default to desktop on first render before antd's ResponsiveObserver
+  // fires — otherwise the initial paint takes the mobile branch.
+  const { md: isNotMobile = true } = Grid.useBreakpoint();
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
   const dashboardId = useSelector<RootState, string>(
     ({ dashboardInfo }) => `${dashboardInfo.id}`,
@@ -462,13 +466,14 @@ const DashboardBuilder = () => {
     dashboardFiltersOpen,
     toggleDashboardFiltersOpen,
     nativeFiltersEnabled,
+    hasFilters,
   } = useNativeFilters();
 
   const [containerRef, isSticky] = useElementOnScreen<HTMLDivElement>(
     ELEMENT_ON_SCREEN_OPTIONS,
   );
 
-  const showFilterBar = !editMode && nativeFiltersEnabled;
+  const showFilterBar = isNotMobile && !editMode && nativeFiltersEnabled;
 
   const offset =
     FILTER_BAR_HEADER_HEIGHT +
@@ -480,6 +485,7 @@ const DashboardBuilder = () => {
   const draggableStyle = useMemo(
     () => ({
       marginLeft:
+        !isNotMobile ||
         dashboardFiltersOpen ||
         editMode ||
         !nativeFiltersEnabled ||
@@ -488,6 +494,7 @@ const DashboardBuilder = () => {
           : -32,
     }),
     [
+      isNotMobile,
       dashboardFiltersOpen,
       editMode,
       filterBarOrientation,
@@ -519,7 +526,15 @@ const DashboardBuilder = () => {
   const headerContent = useMemo(
     () => (
       <>
-        {!hideDashboardHeader && <DashboardHeader />}
+        {!hideDashboardHeader && (
+          <DashboardHeader
+            onOpenMobileFilters={
+              !isNotMobile && nativeFiltersEnabled && hasFilters
+                ? () => setMobileFiltersOpen(true)
+                : undefined
+            }
+          />
+        )}
         {/* Report mode is a one-shot screenshot render (reports, thumbnails),
             so it must never start a refresh timer that could re-fetch charts
             mid-capture. */}
@@ -533,7 +548,15 @@ const DashboardBuilder = () => {
           )}
       </>
     ),
-    [hideDashboardHeader, showFilterBar, filterBarOrientation, isReport],
+    [
+      hideDashboardHeader,
+      isNotMobile,
+      nativeFiltersEnabled,
+      hasFilters,
+      showFilterBar,
+      filterBarOrientation,
+      isReport,
+    ],
   );
 
   const renderDraggableContent = useCallback(
@@ -577,6 +600,8 @@ const DashboardBuilder = () => {
       topLevelTabs,
       uiConfig.hideTab,
       uiConfig.hideNav,
+      isNotMobile,
+      theme,
     ],
   );
 
@@ -738,6 +763,89 @@ const DashboardBuilder = () => {
             }
           `}
         />
+      )}
+      {/* Mobile filters drawer */}
+      {!isNotMobile && nativeFiltersEnabled && (
+        <Drawer
+          title={t('Filters')}
+          placement="left"
+          onClose={() => setMobileFiltersOpen(false)}
+          open={mobileFiltersOpen}
+          width="85vw"
+          styles={{
+            body: {
+              padding: 0,
+              display: 'flex',
+              flexDirection: 'column',
+            },
+          }}
+          css={css`
+            /* Mobile filter drawer overrides */
+
+            /* Hide the Header component (contains Actions title, settings, collapse button) */
+            /* Target the parent div that contains the collapse button using :has() */
+            div:has([data-test='filter-bar-collapse-button']) {
+              display: none !important;
+            }
+
+            /* Hide the collapsed bar */
+            [data-test='filter-bar-collapsable'] {
+              display: none !important;
+            }
+
+            /* Action buttons: side by side, not fixed position */
+            [data-test='filterbar-action-buttons'] {
+              position: relative !important;
+              flex-direction: row !important;
+              width: 100% !important;
+              padding: ${theme.sizeUnit * 4}px !important;
+              background: ${theme.colorBgContainer} !important;
+              border-top: 1px solid ${theme.colorBorderSecondary} !important;
+              gap: ${theme.sizeUnit * 2}px !important;
+              bottom: auto !important;
+              left: auto !important;
+
+              .filter-apply-button {
+                margin-bottom: 0 !important;
+                flex: 1;
+              }
+              .filter-clear-all-button {
+                flex: 1;
+              }
+            }
+
+            /* Remove border-right and make full width */
+            [data-test='filter-bar'] {
+              position: relative;
+              width: 100% !important;
+              height: 100%;
+              border-right: none;
+
+              & > .open {
+                position: relative;
+                width: 100% !important;
+                height: 100%;
+                min-height: 100%;
+                border-right: none !important;
+                border-bottom: none !important;
+                display: flex;
+                flex-direction: column;
+              }
+            }
+          `}
+        >
+          <FilterBar
+            orientation={FilterBarOrientation.Vertical}
+            verticalConfig={{
+              filtersOpen: true,
+              toggleFiltersBar: () => {},
+              width: 300,
+              height: '100%',
+              offset: 0,
+            }}
+            hidden={false}
+          />
+        </Drawer>
       )}
     </DashboardWrapper>
   );

@@ -293,7 +293,8 @@ const createFetchSubjectRelation =
         ...result,
         data: result.data.flatMap(item => {
           const secondaryLabel = item.extra?.secondary_label as
-            string | undefined;
+            | string
+            | undefined;
           const type = item.extra?.type as number | undefined;
           const value = normalizeSubjectToPickerValue({
             value: item.value,
@@ -456,6 +457,13 @@ export const CardContainer = styled.div<{
         ? `${theme.sizeUnit * 8 + 3}px ${theme.sizeUnit * 20}px`
         : `${theme.sizeUnit * 8 + 1}px ${theme.sizeUnit * 20}px`
     };
+
+    /* Full-width cards on mobile */
+    @media (max-width: 767px) {
+      grid-template-columns: 1fr;
+      padding-left: ${theme.sizeUnit * 4}px;
+      padding-right: ${theme.sizeUnit * 4}px;
+    }
   `}
 `;
 
@@ -467,6 +475,13 @@ export const CardStyles = styled.div`
   .ant-card-cover > div {
     /* Height is calculated based on 300px width, to keep the same aspect ratio as the 800*450 thumbnails */
     height: 168px;
+  }
+
+  /* Hide kebab menu on mobile - consumption mode only */
+  @media (max-width: 767px) {
+    .ant-dropdown-trigger {
+      display: none;
+    }
   }
 `;
 
