@@ -20,7 +20,7 @@ import { useCallback, useState } from 'react';
 import { t } from '@apache-superset/core/translation';
 import { SupersetClient } from '@superset-ui/core';
 import { styled, css } from '@apache-superset/core/theme';
-import { Input } from '@superset-ui/core/components';
+import { Checkbox, Input } from '@superset-ui/core/components';
 import { StandardModal } from 'src/components/Modal';
 
 interface CreateFolderModalProps {
@@ -60,6 +60,7 @@ export default function CreateFolderModal({
   addSuccessToast,
 }: CreateFolderModalProps) {
   const [name, setName] = useState('');
+  const [isPrivate, setIsPrivate] = useState(false);
   const [saving, setSaving] = useState(false);
 
   const handleSave = useCallback(async () => {
@@ -75,6 +76,7 @@ export default function CreateFolderModal({
           name: name.trim(),
           folder_type: 'analytics',
           ...(parentFolderUuid ? { parent_uuid: parentFolderUuid } : {}),
+          ...(isPrivate ? { is_private: true } : {}),
         },
       });
       addSuccessToast(t('Folder "%s" created', name.trim()));
@@ -117,6 +119,16 @@ export default function CreateFolderModal({
             autoFocus
           />
         </FormGroup>
+        {!parentFolderUuid && (
+          <FormGroup>
+            <Checkbox
+              checked={isPrivate}
+              onChange={e => setIsPrivate(e.target.checked)}
+            >
+              {t('Private folder')}
+            </Checkbox>
+          </FormGroup>
+        )}
       </ModalContent>
     </StandardModal>
   );
