@@ -1360,3 +1360,11 @@ def test_resolve_column_type_falls_back_to_pa_mapped() -> None:
 def test_resolve_column_type_returns_none_when_both_absent() -> None:
     """None is returned when neither source provides a type."""
     assert BaseEngineSpec.resolve_column_type(None, None) is None
+
+
+def test_get_public_information_exposes_ansi_identifier_quote() -> None:
+    """The base spec advertises ANSI double quotes for identifier quoting."""
+    assert BaseEngineSpec.get_public_information()["identifier_quote"] == {
+        "start": '"',
+        "end": '"',
+    }

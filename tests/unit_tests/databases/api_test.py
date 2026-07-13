@@ -244,6 +244,7 @@ def test_database_connection(
                 "supports_file_upload": True,
                 "supports_oauth2": True,
                 "supports_schemas": True,
+                "identifier_quote": {"start": '"', "end": '"'},
             },
             "expose_in_sqllab": True,
             "extra": '{\n    "metadata_params": {},\n    "engine_params": {},\n    "metadata_cache_timeout": {},\n    "schemas_allowed_for_file_upload": []\n}\n',  # noqa: E501
@@ -334,6 +335,7 @@ def test_database_connection(
                 "supports_file_upload": True,
                 "supports_oauth2": True,
                 "supports_schemas": True,
+                "identifier_quote": {"start": '"', "end": '"'},
             },
             "expose_in_sqllab": True,
             "force_ctas_schema": None,
