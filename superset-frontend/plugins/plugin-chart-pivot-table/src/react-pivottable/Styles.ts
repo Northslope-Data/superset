@@ -140,7 +140,11 @@ export const Styles = styled.div<{ isDashboardEditMode: boolean }>`
     }
 
     .toggle {
+      appearance: none;
+      border: none;
+      background: none;
       padding-right: ${theme.sizeUnit}px;
+      font: inherit;
       cursor: pointer;
     }
 

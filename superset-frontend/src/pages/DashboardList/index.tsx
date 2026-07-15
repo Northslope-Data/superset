@@ -17,12 +17,7 @@
  * under the License.
  */
 import { t } from '@apache-superset/core/translation';
-import {
-  isFeatureEnabled,
-  FeatureFlag,
-  SupersetClient,
-  handleKeyboardActivation,
-} from '@superset-ui/core';
+import { isFeatureEnabled, FeatureFlag, SupersetClient } from '@superset-ui/core';
 import { styled } from '@apache-superset/core/theme';
 import { useSelector } from 'react-redux';
 import { useState, useMemo, useCallback } from 'react';
@@ -40,6 +35,7 @@ import { SUBJECT_OPTION_FILTER_PROPS } from 'src/features/subjects/SubjectSelect
 import { SubjectPile } from 'src/features/subjects/SubjectPile';
 import { useListViewResource, useFavoriteStatus } from 'src/views/CRUD/hooks';
 import {
+  ActionButton,
   CertifiedBadge,
   ConfirmStatusChange,
   DeleteModal,
@@ -493,40 +489,26 @@ function DashboardList(props: DashboardListProps) {
           return (
             <Actions className="actions">
               {canEdit && (
-                <Tooltip
-                  id="edit-action-tooltip"
-                  title={t('Edit')}
+                <ActionButton
+                  label={t('Edit')}
+                  tooltip={t('Edit')}
                   placement="bottom"
-                >
-                  <span
-                    data-test="dashboard-row-edit"
-                    role="button"
-                    tabIndex={0}
-                    className="action-button"
-                    onClick={handleEdit}
-                    onKeyDown={handleKeyboardActivation(handleEdit)}
-                  >
+                  icon={
                     <Icons.EditOutlined data-test="edit-alt" iconSize="l" />
-                  </span>
-                </Tooltip>
+                  }
+                  dataTest="dashboard-row-edit"
+                  onClick={handleEdit}
+                />
               )}
               {canExport && (
-                <Tooltip
-                  id="export-action-tooltip"
-                  title={t('Export')}
+                <ActionButton
+                  label={t('Export')}
+                  tooltip={t('Export')}
                   placement="bottom"
-                >
-                  <span
-                    data-test="dashboard-row-export"
-                    role="button"
-                    tabIndex={0}
-                    className="action-button"
-                    onClick={handleExport}
-                    onKeyDown={handleKeyboardActivation(handleExport)}
-                  >
-                    <Icons.UploadOutlined iconSize="l" />
-                  </span>
-                </Tooltip>
+                  icon={<Icons.UploadOutlined iconSize="l" />}
+                  dataTest="dashboard-row-export"
+                  onClick={handleExport}
+                />
               )}
               {canDelete && (
                 <ConfirmStatusChange
@@ -540,25 +522,19 @@ function DashboardList(props: DashboardListProps) {
                   onConfirm={handleDelete}
                 >
                   {confirmDelete => (
-                    <Tooltip
-                      id="delete-action-tooltip"
-                      title={t('Delete')}
+                    <ActionButton
+                      label={t('Delete')}
+                      tooltip={t('Delete')}
                       placement="bottom"
-                    >
-                      <span
-                        data-test="dashboard-row-delete"
-                        role="button"
-                        tabIndex={0}
-                        className="action-button"
-                        onClick={confirmDelete}
-                        onKeyDown={handleKeyboardActivation(confirmDelete)}
-                      >
+                      icon={
                         <Icons.DeleteOutlined
                           iconSize="l"
                           data-test="dashboard-list-trash-icon"
                         />
-                      </span>
-                    </Tooltip>
+                      }
+                      dataTest="dashboard-row-delete"
+                      onClick={confirmDelete}
+                    />
                   )}
                 </ConfirmStatusChange>
               )}

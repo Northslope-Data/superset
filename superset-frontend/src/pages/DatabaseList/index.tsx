@@ -22,7 +22,6 @@ import {
   SupersetClient,
   isFeatureEnabled,
   FeatureFlag,
-  handleKeyboardActivation,
 } from '@superset-ui/core';
 import { css, styled, useTheme } from '@apache-superset/core/theme';
 import { useState, useMemo, useEffect, useCallback } from 'react';
@@ -40,6 +39,7 @@ import {
 import withToasts from 'src/components/MessageToasts/withToasts';
 import SubMenu, { SubMenuProps } from 'src/features/home/SubMenu';
 import {
+  ActionButton,
   Button,
   DeleteModal,
   Dropdown,
@@ -688,44 +688,22 @@ function DatabaseList({
             return (
               <Actions className="actions">
                 {canDelete && (
-                  <Tooltip
-                    id="delete-action-tooltip"
-                    title={t('Delete')}
+                  <ActionButton
+                    label={t('Delete')}
+                    tooltip={t('Delete')}
                     placement="bottom"
-                  >
-                    <span
-                      role="button"
-                      tabIndex={0}
-                      className="action-button"
-                      onClick={() => setSlCurrentlyDeleting(original)}
-                      onKeyDown={handleKeyboardActivation(() =>
-                        setSlCurrentlyDeleting(original),
-                      )}
-                    >
-                      <Icons.DeleteOutlined iconSize="l" />
-                    </span>
-                  </Tooltip>
+                    icon={<Icons.DeleteOutlined iconSize="l" />}
+                    onClick={() => setSlCurrentlyDeleting(original)}
+                  />
                 )}
                 {canEdit && (
-                  <Tooltip
-                    id="edit-action-tooltip"
-                    title={t('Edit')}
+                  <ActionButton
+                    label={t('Edit')}
+                    tooltip={t('Edit')}
                     placement="bottom"
-                  >
-                    <span
-                      role="button"
-                      tabIndex={0}
-                      className="action-button"
-                      onClick={() =>
-                        setSlCurrentlyEditing(original.uuid ?? null)
-                      }
-                      onKeyDown={handleKeyboardActivation(() =>
-                        setSlCurrentlyEditing(original.uuid ?? null),
-                      )}
-                    >
-                      <Icons.EditOutlined iconSize="l" />
-                    </span>
-                  </Tooltip>
+                    icon={<Icons.EditOutlined iconSize="l" />}
+                    onClick={() => setSlCurrentlyEditing(original.uuid ?? null)}
+                  />
                 )}
               </Actions>
             );
@@ -742,75 +720,45 @@ function DatabaseList({
           return (
             <Actions className="actions">
               {canEdit && (
-                <Tooltip
-                  id="edit-action-tooltip"
-                  title={t('Edit')}
+                <ActionButton
+                  label={t('Edit')}
+                  tooltip={t('Edit')}
                   placement="bottom"
-                >
-                  <span
-                    role="button"
-                    data-test="database-edit"
-                    tabIndex={0}
-                    className="action-button"
-                    onClick={handleEdit}
-                    onKeyDown={handleKeyboardActivation(handleEdit)}
-                  >
+                  icon={
                     <Icons.EditOutlined data-test="edit-alt" iconSize="l" />
-                  </span>
-                </Tooltip>
+                  }
+                  dataTest="database-edit"
+                  onClick={handleEdit}
+                />
               )}
               {canExport && (
-                <Tooltip
-                  id="export-action-tooltip"
-                  title={t('Export')}
+                <ActionButton
+                  label={t('Export')}
+                  tooltip={t('Export')}
                   placement="bottom"
-                >
-                  <span
-                    role="button"
-                    tabIndex={0}
-                    className="action-button"
-                    onClick={handleExport}
-                    onKeyDown={handleKeyboardActivation(handleExport)}
-                  >
-                    <Icons.UploadOutlined iconSize="l" />
-                  </span>
-                </Tooltip>
+                  icon={<Icons.UploadOutlined iconSize="l" />}
+                  onClick={handleExport}
+                />
               )}
               {canEdit && (
-                <Tooltip
-                  id="sync-action-tooltip"
-                  title={t('Sync Permissions')}
+                <ActionButton
+                  label={t('Sync Permissions')}
+                  tooltip={t('Sync Permissions')}
                   placement="bottom"
-                >
-                  <span
-                    role="button"
-                    data-test="database-sync-perm"
-                    tabIndex={0}
-                    className="action-button"
-                    onClick={handleSync}
-                    onKeyDown={handleKeyboardActivation(handleSync)}
-                  >
-                    <Icons.SyncOutlined iconSize="l" />
-                  </span>
-                </Tooltip>
+                  icon={<Icons.SyncOutlined iconSize="l" />}
+                  dataTest="database-sync-perm"
+                  onClick={handleSync}
+                />
               )}
               {canDelete && (
-                <span
-                  role="button"
-                  tabIndex={0}
-                  className="action-button"
-                  data-test="database-delete"
+                <ActionButton
+                  label={t('Delete %s', databaseLabelLower())}
+                  tooltip={t('Delete %s', databaseLabelLower())}
+                  placement="bottom"
+                  icon={<Icons.DeleteOutlined iconSize="l" />}
+                  dataTest="database-delete"
                   onClick={handleDelete}
-                  onKeyDown={handleKeyboardActivation(handleDelete)}
-                >
-                  <Tooltip
-                    id="delete-action-tooltip"
-                    title={t('Delete %s', databaseLabelLower())}
-                    placement="bottom"
-                  >
-                    <Icons.DeleteOutlined iconSize="l" />
-                  </Tooltip>
-                </span>
+                />
               )}
             </Actions>
           );

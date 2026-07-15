@@ -22,10 +22,15 @@ import { styled } from '@apache-superset/core/theme';
 interface IconButtonProps {
   icon: JSX.Element;
   label?: string;
-  onClick: MouseEventHandler<HTMLDivElement>;
+  onClick: MouseEventHandler<HTMLButtonElement>;
 }
 
-const StyledDiv = styled.div`
+const StyledButton = styled.button`
+  appearance: none;
+  border: none;
+  background: none;
+  padding: 0;
+  font: inherit;
   display: flex;
   align-items: center;
   cursor: pointer;
@@ -40,9 +45,8 @@ const StyledSpan = styled.span`
 `;
 
 const IconButton = ({ icon, label, onClick }: IconButtonProps) => (
-  <StyledDiv
-    tabIndex={0}
-    role="button"
+  <StyledButton
+    type="button"
     onClick={e => {
       e.preventDefault();
       onClick(e);
@@ -50,7 +54,7 @@ const IconButton = ({ icon, label, onClick }: IconButtonProps) => (
   >
     {icon}
     {label && <StyledSpan>{label}</StyledSpan>}
-  </StyledDiv>
+  </StyledButton>
 );
 
 export default IconButton;

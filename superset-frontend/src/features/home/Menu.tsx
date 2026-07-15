@@ -265,11 +265,7 @@ export function Menu({
       return {
         key,
         label: (
-          <NavLink
-            role="button"
-            to={stripAppRoot(url)}
-            activeClassName="is-active"
-          >
+          <NavLink to={stripAppRoot(url)} activeClassName="is-active">
             {label}
           </NavLink>
         ),
@@ -394,9 +390,9 @@ export function Menu({
   };
   return (
     <StyledHeader
+      as="nav"
       className="top"
       id="main-menu"
-      role="navigation"
       aria-label={t('Main navigation')}
     >
       <StyledRow>

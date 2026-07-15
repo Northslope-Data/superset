@@ -25,7 +25,6 @@ import {
   JsonResponse,
   SupersetClient,
   isMatrixifyEnabled,
-  handleKeyboardActivation,
 } from '@superset-ui/core';
 import { css, styled } from '@apache-superset/core/theme';
 import { useState, useMemo, useCallback } from 'react';
@@ -48,6 +47,7 @@ import {
 } from 'src/views/CRUD/hooks';
 import handleResourceExport from 'src/utils/export';
 import {
+  ActionButton,
   ConfirmStatusChange,
   CertifiedBadge,
   Tooltip,
@@ -534,40 +534,26 @@ function ChartList(props: ChartListProps) {
           return (
             <StyledActions className="actions">
               {canEdit && (
-                <Tooltip
-                  id="edit-action-tooltip"
-                  title={t('Edit')}
+                <ActionButton
+                  label={t('Edit')}
+                  tooltip={t('Edit')}
                   placement="bottom"
-                >
-                  <span
-                    data-test="chart-row-edit"
-                    role="button"
-                    tabIndex={0}
-                    className="action-button"
-                    onClick={openEditModal}
-                    onKeyDown={handleKeyboardActivation(openEditModal)}
-                  >
+                  icon={
                     <Icons.EditOutlined data-test="edit-alt" iconSize="l" />
-                  </span>
-                </Tooltip>
+                  }
+                  dataTest="chart-row-edit"
+                  onClick={openEditModal}
+                />
               )}
               {canExport && (
-                <Tooltip
-                  id="export-action-tooltip"
-                  title={t('Export')}
+                <ActionButton
+                  label={t('Export')}
+                  tooltip={t('Export')}
                   placement="bottom"
-                >
-                  <span
-                    data-test="chart-row-export"
-                    role="button"
-                    tabIndex={0}
-                    className="action-button"
-                    onClick={handleExport}
-                    onKeyDown={handleKeyboardActivation(handleExport)}
-                  >
-                    <Icons.UploadOutlined iconSize="l" />
-                  </span>
-                </Tooltip>
+                  icon={<Icons.UploadOutlined iconSize="l" />}
+                  dataTest="chart-row-export"
+                  onClick={handleExport}
+                />
               )}
               {canDelete && (
                 <ConfirmStatusChange
@@ -581,22 +567,14 @@ function ChartList(props: ChartListProps) {
                   onConfirm={handleDelete}
                 >
                   {confirmDelete => (
-                    <Tooltip
-                      id="delete-action-tooltip"
-                      title={t('Delete')}
+                    <ActionButton
+                      label={t('Delete')}
+                      tooltip={t('Delete')}
                       placement="bottom"
-                    >
-                      <span
-                        data-test="chart-row-delete"
-                        role="button"
-                        tabIndex={0}
-                        className="action-button"
-                        onClick={confirmDelete}
-                        onKeyDown={handleKeyboardActivation(confirmDelete)}
-                      >
-                        <Icons.DeleteOutlined iconSize="l" />
-                      </span>
-                    </Tooltip>
+                      icon={<Icons.DeleteOutlined iconSize="l" />}
+                      dataTest="chart-row-delete"
+                      onClick={confirmDelete}
+                    />
                   )}
                 </ConfirmStatusChange>
               )}

@@ -17,11 +17,7 @@
  * under the License.
  */
 import { t } from '@apache-superset/core/translation';
-import {
-  isFeatureEnabled,
-  FeatureFlag,
-  handleKeyboardActivation,
-} from '@superset-ui/core';
+import { isFeatureEnabled, FeatureFlag } from '@superset-ui/core';
 import { css } from '@apache-superset/core/theme';
 import { Link, useHistory } from 'react-router-dom';
 import {
@@ -39,6 +35,18 @@ import { handleChartDelete, CardStyles } from 'src/views/CRUD/utils';
 import { assetUrl } from 'src/utils/assetUrl';
 import type { ListViewFetchDataConfig as FetchDataConfig } from 'src/components';
 import { TableTab } from 'src/views/CRUD/types';
+
+const menuItemButtonCss = css`
+  appearance: none;
+  border: none;
+  background: none;
+  padding: 0;
+  margin: 0;
+  width: 100%;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+`;
 
 interface ChartCardProps {
   chart: Chart;
@@ -85,12 +93,11 @@ export default function ChartCard({
     menuItems.push({
       key: 'edit',
       label: (
-        <div
+        <button
+          type="button"
+          css={menuItemButtonCss}
           data-test="chart-list-edit-option"
-          role="button"
-          tabIndex={0}
           onClick={() => openChartEditModal(chart)}
-          onKeyDown={handleKeyboardActivation(() => openChartEditModal(chart))}
         >
           <Icons.EditOutlined
             iconSize="l"
@@ -99,7 +106,7 @@ export default function ChartCard({
             `}
           />{' '}
           {t('Edit')}
-        </div>
+        </button>
       ),
     });
   }
@@ -108,13 +115,11 @@ export default function ChartCard({
     menuItems.push({
       key: 'export',
       label: (
-        <div
-          role="button"
-          tabIndex={0}
+        <button
+          type="button"
+          css={menuItemButtonCss}
+          data-test="chart-list-export-option"
           onClick={() => handleBulkChartExport([chart])}
-          onKeyDown={handleKeyboardActivation(() =>
-            handleBulkChartExport([chart]),
-          )}
         >
           <Icons.UploadOutlined
             iconSize="l"
@@ -123,7 +128,7 @@ export default function ChartCard({
             `}
           />{' '}
           {t('Export')}
-        </div>
+        </button>
       ),
     });
   }
@@ -152,13 +157,12 @@ export default function ChartCard({
           }
         >
           {confirmDelete => (
-            <div
+            <button
+              type="button"
+              css={menuItemButtonCss}
               data-test="chart-list-delete-option"
-              role="button"
-              tabIndex={0}
               className="action-button"
               onClick={confirmDelete}
-              onKeyDown={handleKeyboardActivation(confirmDelete)}
             >
               <Icons.DeleteOutlined
                 iconSize="l"
@@ -167,7 +171,7 @@ export default function ChartCard({
                 `}
               />{' '}
               {t('Delete')}
-            </div>
+            </button>
           )}
         </ConfirmStatusChange>
       ),
