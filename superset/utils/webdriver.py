@@ -203,10 +203,17 @@ class WebDriverProxy(ABC):
 
     @abstractmethod
     def get_screenshot(
-        self, url: str, element_name: str, user: User | None = None
+        self,
+        url: str,
+        element_name: str,
+        user: User | None = None,
+        log_context: str | None = None,
     ) -> bytes | None:
         """
         Run webdriver and return a screenshot
+
+        :param log_context: Optional identifier (e.g. report execution id, or
+            a thumbnail cache key) included in log lines for tracing.
         """
 
 
@@ -269,7 +276,11 @@ class WebDriverPlaywright(WebDriverProxy):
             return element.screenshot()
 
     def get_screenshot(  # pylint: disable=too-many-locals, too-many-statements  # noqa: C901
-        self, url: str, element_name: str, user: User | None = None
+        self,
+        url: str,
+        element_name: str,
+        user: User | None = None,
+        log_context: str | None = None,
     ) -> bytes | None:
         if not PLAYWRIGHT_AVAILABLE:
             logger.info(
@@ -405,6 +416,7 @@ class WebDriverPlaywright(WebDriverProxy):
                             tile_height,
                             load_wait=self._screenshot_load_wait,
                             animation_wait=selenium_animation_wait,
+                            log_context=log_context,
                         )
                         if not img:
                             logger.warning(
@@ -784,8 +796,15 @@ class WebDriverSelenium(WebDriverProxy):
         return error_messages
 
     def get_screenshot(  # noqa: C901
-        self, url: str, element_name: str, user: User | None = None
+        self,
+        url: str,
+        element_name: str,
+        user: User | None = None,
+        log_context: str | None = None,
     ) -> bytes | None:
+        # log_context is unused here: Selenium doesn't take tiled screenshots
+        # (only WebDriverPlaywright does), so there's nothing to attribute it
+        # to. Accepted for signature compatibility with WebDriverProxy.
         # If a user is passed explicitly and differs from the stored user,
         # update and re-authenticate
         if user and user != self._user:
