@@ -26,6 +26,8 @@
  * antd at the source works correctly.
  */
 
+import { FeatureFlag } from '@superset-ui/core';
+
 /**
  * Standard mobile breakpoint values (below md breakpoint)
  */
@@ -79,6 +81,23 @@ export const mockAntdWithDesktopBreakpoint = () => ({
     useBreakpoint: () => desktopBreakpoints,
   },
 });
+
+/**
+ * Enables the MOBILE_CONSUMPTION_MODE feature flag on window.featureFlags.
+ * Mobile behavior requires BOTH a small viewport (mock Grid.useBreakpoint)
+ * AND this flag; call this in beforeAll/beforeEach of mobile test suites.
+ * Returns a cleanup function restoring the previous flags.
+ */
+export const enableMobileConsumptionFlag = () => {
+  const previous = window.featureFlags;
+  window.featureFlags = {
+    ...window.featureFlags,
+    [FeatureFlag.MobileConsumptionMode]: true,
+  };
+  return () => {
+    window.featureFlags = previous;
+  };
+};
 
 /**
  * Common mobile viewport dimensions for reference

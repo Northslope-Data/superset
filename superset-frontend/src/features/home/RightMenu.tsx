@@ -52,11 +52,11 @@ import {
   Typography,
   TelemetryPixel,
   Drawer,
-  Grid,
   Button,
 } from '@superset-ui/core/components';
 import type { ItemType, MenuItem } from '@superset-ui/core/components/Menu';
 import { ensureAppRoot, stripAppRoot } from 'src/utils/navigationUtils';
+import { useIsMobile } from 'src/hooks/useIsMobile';
 import { isEmbedded } from 'src/dashboard/util/isEmbedded';
 import { findPermission } from 'src/utils/findPermission';
 import { isUserAdmin } from 'src/dashboard/util/permissionUtils';
@@ -114,8 +114,6 @@ const StyledMenuItem = styled.div<{ disabled?: boolean }>`
   `}
 `;
 
-const { useBreakpoint } = Grid;
-
 const RightMenu = ({
   align,
   settings,
@@ -134,7 +132,7 @@ const RightMenu = ({
   }) => void;
 }) => {
   const theme = useTheme();
-  const screens = useBreakpoint();
+  const isMobile = useIsMobile();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const user = useSelector<any, UserWithPermissionsAndRoles>(
     state => state.user,
@@ -657,9 +655,9 @@ const RightMenu = ({
     const items: MenuItem[] = [];
 
     // Add Dashboards link at top (from main menu)
-    const dashboardsMenu = menu?.find(
-      item => item.label === 'Dashboards' || item.name === 'Dashboards',
-    );
+    // Match on the FAB-internal `name`, which is stable across locales
+    // (`label` is translated and would break in non-English deployments)
+    const dashboardsMenu = menu?.find(item => item.name === 'Dashboards');
     if (dashboardsMenu) {
       const dashboardUrl = dashboardsMenu.url || '/dashboard/list/';
       items.push({
@@ -771,7 +769,7 @@ const RightMenu = ({
           );
         })()}
       {/* Mobile: hamburger menu with drawer */}
-      {!screens.md && (
+      {isMobile && (
         <>
           <Button
             buttonStyle="link"
@@ -807,7 +805,7 @@ const RightMenu = ({
         </>
       )}
       {/* Desktop: horizontal menu */}
-      {screens.md && (
+      {!isMobile && (
         <Menu
           css={css`
             display: flex;

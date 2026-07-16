@@ -16,115 +16,58 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import MobileRouteGuard, {
-  isMobileSupportedRoute,
-  MOBILE_SUPPORTED_ROUTES,
-} from './index';
+import { MemoryRouter } from 'react-router-dom';
+import { render, screen } from 'spec/helpers/testing-library';
+import { useIsMobile } from 'src/hooks/useIsMobile';
+import MobileRouteGuard from '.';
+import { MOBILE_BYPASS_STORAGE_KEY } from '../../pages/MobileUnsupported';
 
-// Store the original sessionStorage
-const originalSessionStorage = window.sessionStorage;
+jest.mock('src/hooks/useIsMobile', () => ({
+  useIsMobile: jest.fn(),
+  isMobileConsumptionEnabled: jest.fn().mockReturnValue(true),
+}));
 
-// Clean up sessionStorage before each test
+const mockedUseIsMobile = useIsMobile as jest.MockedFunction<
+  typeof useIsMobile
+>;
+
+const renderGuard = (mobileSupported?: boolean) =>
+  render(
+    <MemoryRouter initialEntries={['/some/route/']}>
+      <MobileRouteGuard mobileSupported={mobileSupported}>
+        <div data-test="guarded-content">Content</div>
+      </MobileRouteGuard>
+    </MemoryRouter>,
+  );
+
 beforeEach(() => {
   sessionStorage.clear();
-  jest.clearAllMocks();
+  mockedUseIsMobile.mockReturnValue(false);
 });
 
-afterEach(() => {
-  // Restore sessionStorage if it was mocked
-  Object.defineProperty(window, 'sessionStorage', {
-    value: originalSessionStorage,
-    writable: true,
-  });
+test('renders children on desktop regardless of mobileSupported', () => {
+  renderGuard(undefined);
+  expect(screen.getByTestId('guarded-content')).toBeInTheDocument();
 });
 
-// Unit tests for isMobileSupportedRoute helper function
-test('isMobileSupportedRoute returns true for dashboard list', () => {
-  expect(isMobileSupportedRoute('/dashboard/list/')).toBe(true);
-  expect(isMobileSupportedRoute('/dashboard/list')).toBe(true);
+test('renders children on mobile when the route is mobileSupported', () => {
+  mockedUseIsMobile.mockReturnValue(true);
+  renderGuard(true);
+  expect(screen.getByTestId('guarded-content')).toBeInTheDocument();
 });
 
-test('isMobileSupportedRoute returns true for individual dashboards', () => {
-  expect(isMobileSupportedRoute('/dashboard/123/')).toBe(true);
-  expect(isMobileSupportedRoute('/dashboard/my-dashboard/')).toBe(true);
-  expect(isMobileSupportedRoute('/dashboard/abc-123/')).toBe(true);
-  // Legacy /superset-prefixed URLs
-  expect(isMobileSupportedRoute('/superset/dashboard/123/')).toBe(true);
-  expect(isMobileSupportedRoute('/superset/dashboard/my-dashboard/')).toBe(
-    true,
-  );
+test('shows the unsupported screen on mobile for unsupported routes', () => {
+  mockedUseIsMobile.mockReturnValue(true);
+  renderGuard(undefined);
+  expect(screen.queryByTestId('guarded-content')).not.toBeInTheDocument();
+  expect(
+    screen.getByText("This view isn't available on mobile"),
+  ).toBeInTheDocument();
 });
 
-test('isMobileSupportedRoute returns true for welcome page', () => {
-  expect(isMobileSupportedRoute('/welcome/')).toBe(true);
-  expect(isMobileSupportedRoute('/welcome')).toBe(true);
-  // Legacy /superset-prefixed URLs
-  expect(isMobileSupportedRoute('/superset/welcome/')).toBe(true);
-  expect(isMobileSupportedRoute('/superset/welcome')).toBe(true);
-});
-
-test('isMobileSupportedRoute returns true for auth routes', () => {
-  expect(isMobileSupportedRoute('/login/')).toBe(true);
-  expect(isMobileSupportedRoute('/logout/')).toBe(true);
-  expect(isMobileSupportedRoute('/register/')).toBe(true);
-});
-
-test('isMobileSupportedRoute returns false for chart routes', () => {
-  expect(isMobileSupportedRoute('/chart/list/')).toBe(false);
-  expect(isMobileSupportedRoute('/explore/')).toBe(false);
-  expect(isMobileSupportedRoute('/superset/explore/')).toBe(false);
-});
-
-test('isMobileSupportedRoute returns false for SQL Lab', () => {
-  expect(isMobileSupportedRoute('/sqllab/')).toBe(false);
-  expect(isMobileSupportedRoute('/superset/sqllab/')).toBe(false);
-});
-
-test('isMobileSupportedRoute returns false for database/dataset routes', () => {
-  expect(isMobileSupportedRoute('/database/list/')).toBe(false);
-  expect(isMobileSupportedRoute('/dataset/list/')).toBe(false);
-});
-
-test('isMobileSupportedRoute strips query params and hash', () => {
-  expect(isMobileSupportedRoute('/dashboard/list/?page=1')).toBe(true);
-  expect(isMobileSupportedRoute('/dashboard/list/#section')).toBe(true);
-  expect(isMobileSupportedRoute('/chart/list/?page=1')).toBe(false);
-});
-
-test('MOBILE_SUPPORTED_ROUTES includes expected patterns', () => {
-  // Verify the constant is exported and has expected patterns
-  expect(MOBILE_SUPPORTED_ROUTES).toBeInstanceOf(Array);
-  expect(MOBILE_SUPPORTED_ROUTES.length).toBeGreaterThan(0);
-
-  // Check some patterns exist
-  const hasLoginPattern = MOBILE_SUPPORTED_ROUTES.some(p => p.test('/login/'));
-  const hasDashboardListPattern = MOBILE_SUPPORTED_ROUTES.some(p =>
-    p.test('/dashboard/list/'),
-  );
-  const hasWelcomePattern = MOBILE_SUPPORTED_ROUTES.some(p =>
-    p.test('/welcome/'),
-  );
-
-  expect(hasLoginPattern).toBe(true);
-  expect(hasDashboardListPattern).toBe(true);
-  expect(hasWelcomePattern).toBe(true);
-});
-
-// Integration tests for MobileRouteGuard component
-// Note: These tests require mocking at the module level which is complex
-// The tests below verify the component structure and exports
-
-test('MobileRouteGuard exports the component as default', () => {
-  expect(MobileRouteGuard).toBeDefined();
-  expect(typeof MobileRouteGuard).toBe('function');
-});
-
-test('isMobileSupportedRoute is exported', () => {
-  expect(isMobileSupportedRoute).toBeDefined();
-  expect(typeof isMobileSupportedRoute).toBe('function');
-});
-
-test('MOBILE_SUPPORTED_ROUTES is exported', () => {
-  expect(MOBILE_SUPPORTED_ROUTES).toBeDefined();
-  expect(Array.isArray(MOBILE_SUPPORTED_ROUTES)).toBe(true);
+test('renders children on mobile when the bypass flag is set', () => {
+  mockedUseIsMobile.mockReturnValue(true);
+  sessionStorage.setItem(MOBILE_BYPASS_STORAGE_KEY, 'true');
+  renderGuard(undefined);
+  expect(screen.getByTestId('guarded-content')).toBeInTheDocument();
 });

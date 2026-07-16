@@ -497,9 +497,11 @@ test('mobile drawer contains FilterControls', () => {
     { store: mockStore() },
   );
 
-  // The drawer should contain filter controls (comboboxes for select filters)
-  const comboboxes = screen.getAllByRole('combobox');
-  expect(comboboxes.length).toBeGreaterThan(0);
+  // The drawer should contain the filter controls; select filters render
+  // as popover triggers (aria-haspopup="listbox") in the drawer
+  const drawer = screen.getByRole('dialog');
+  const filterTriggers = drawer.querySelectorAll('[aria-haspopup="listbox"]');
+  expect(filterTriggers.length).toBeGreaterThan(0);
 });
 
 test('mobile drawer contains CardSortSelect when in card view with sort options', () => {

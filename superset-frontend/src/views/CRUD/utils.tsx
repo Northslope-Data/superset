@@ -26,6 +26,7 @@ import {
   lruCache,
 } from '@superset-ui/core';
 import { styled } from '@apache-superset/core/theme';
+import { isMobileConsumptionEnabled } from 'src/hooks/useIsMobile';
 import Chart from 'src/types/Chart';
 import { intersection } from 'lodash-es';
 import rison from 'rison';
@@ -458,11 +459,15 @@ export const CardContainer = styled.div<{
         : `${theme.sizeUnit * 8 + 1}px ${theme.sizeUnit * 20}px`
     };
 
-    /* Full-width cards on mobile */
-    @media (max-width: 767px) {
+    /* Full-width cards on mobile (consumption mode) */
+    ${
+      isMobileConsumptionEnabled()
+        ? `@media (max-width: ${theme.screenSMMax}px) {
       grid-template-columns: 1fr;
       padding-left: ${theme.sizeUnit * 4}px;
       padding-right: ${theme.sizeUnit * 4}px;
+    }`
+        : ''
     }
   `}
 `;
@@ -475,13 +480,6 @@ export const CardStyles = styled.div`
   .ant-card-cover > div {
     /* Height is calculated based on 300px width, to keep the same aspect ratio as the 800*450 thumbnails */
     height: 168px;
-  }
-
-  /* Hide kebab menu on mobile - consumption mode only */
-  @media (max-width: 767px) {
-    .ant-dropdown-trigger {
-      display: none;
-    }
   }
 `;
 

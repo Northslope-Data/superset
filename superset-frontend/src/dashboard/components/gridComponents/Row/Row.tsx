@@ -37,6 +37,7 @@ import {
   Droppable,
 } from 'src/dashboard/components/dnd/DragDroppable';
 import DragHandle from 'src/dashboard/components/dnd/DragHandle';
+import { isMobileConsumptionEnabled } from 'src/hooks/useIsMobile';
 import DashboardComponent from 'src/dashboard/containers/DashboardComponent';
 import DeleteComponentButton from 'src/dashboard/components/DeleteComponentButton';
 import HoverMenu from 'src/dashboard/components/menu/HoverMenu';
@@ -121,14 +122,17 @@ const GridRow = styled.div<{ editMode: boolean }>`
       min-height: ${theme.sizeUnit * 25}px;
     }
 
-    @media (max-width: 767px) {
-      flex-direction: column;
+    ${isMobileConsumptionEnabled() &&
+    css`
+      @media (max-width: ${theme.screenSMMax}px) {
+        flex-direction: column;
 
-      & > :not(.hover-menu) {
-        width: 100% !important;
-        margin-right: 0 !important;
+        & > :not(.hover-menu) {
+          width: 100% !important;
+          margin-right: 0 !important;
+        }
       }
-    }
+    `}
   `}
 `;
 

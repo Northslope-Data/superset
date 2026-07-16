@@ -18,6 +18,10 @@
  */
 
 import { test, expect, devices } from '@playwright/test';
+
+// NOTE: These tests exercise the mobile consumption experience and require
+// the MOBILE_CONSUMPTION_MODE feature flag to be enabled in the target
+// environment (FEATURE_FLAGS = {"MOBILE_CONSUMPTION_MODE": True}).
 import { TIMEOUT } from '../../utils/constants';
 
 /**

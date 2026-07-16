@@ -35,6 +35,7 @@ import { Dashboard } from 'src/views/CRUD/types';
 import { assetUrl } from 'src/utils/assetUrl';
 import { SubjectPile } from 'src/features/subjects/SubjectPile';
 import { KebabMenuButton } from 'src/components';
+import { useIsMobile } from 'src/hooks/useIsMobile';
 
 interface DashboardCardProps {
   isChart?: boolean;
@@ -63,6 +64,7 @@ function DashboardCard({
   handleBulkDashboardExport,
   onDelete,
 }: DashboardCardProps) {
+  const isMobile = useIsMobile();
   const history = useHistory();
   const canEdit = hasPerm('can_write');
   const canDelete = hasPerm('can_write');
@@ -174,10 +176,12 @@ function DashboardCard({
                 isStarred={favoriteStatus}
               />
             )}
-            <KebabMenuButton
-              menuItems={menuItems}
-              dataTest="dashboard-card-menu"
-            />
+            {!isMobile && (
+              <KebabMenuButton
+                menuItems={menuItems}
+                dataTest="dashboard-card-menu"
+              />
+            )}
           </ListViewCard.Actions>
         }
       />

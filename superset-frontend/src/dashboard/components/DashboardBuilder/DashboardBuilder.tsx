@@ -23,12 +23,7 @@ import { t } from '@apache-superset/core/translation';
 import { addAlpha, JsonObject, useElementOnScreen } from '@superset-ui/core';
 import { css, styled, useTheme } from '@apache-superset/core/theme';
 import { useDispatch, useSelector } from 'react-redux';
-import {
-  Drawer,
-  EmptyState,
-  Grid,
-  Loading,
-} from '@superset-ui/core/components';
+import { Drawer, EmptyState, Loading } from '@superset-ui/core/components';
 import { ErrorBoundary, BasicErrorAlert } from 'src/components';
 import BuilderComponentPane from 'src/dashboard/components/BuilderComponentPane';
 import DashboardHeader from 'src/dashboard/components/Header';
@@ -64,6 +59,7 @@ import {
 } from 'src/dashboard/util/constants';
 import FilterBar from 'src/dashboard/components/nativeFilters/FilterBar';
 import { useUiConfig } from 'src/components/UiConfigContext';
+import { useIsMobile } from 'src/hooks/useIsMobile';
 import ResizableSidebar from 'src/components/ResizableSidebar';
 import {
   BUILDER_SIDEPANEL_WIDTH,
@@ -372,9 +368,7 @@ const DashboardBuilder = () => {
   const dispatch = useDispatch();
   const uiConfig = useUiConfig();
   const theme = useTheme();
-  // Default to desktop on first render before antd's ResponsiveObserver
-  // fires — otherwise the initial paint takes the mobile branch.
-  const { md: isNotMobile = true } = Grid.useBreakpoint();
+  const isNotMobile = !useIsMobile();
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
   const dashboardId = useSelector<RootState, string>(
@@ -779,60 +773,6 @@ const DashboardBuilder = () => {
               flexDirection: 'column',
             },
           }}
-          css={css`
-            /* Mobile filter drawer overrides */
-
-            /* Hide the Header component (contains Actions title, settings, collapse button) */
-            /* Target the parent div that contains the collapse button using :has() */
-            div:has([data-test='filter-bar-collapse-button']) {
-              display: none !important;
-            }
-
-            /* Hide the collapsed bar */
-            [data-test='filter-bar-collapsable'] {
-              display: none !important;
-            }
-
-            /* Action buttons: side by side, not fixed position */
-            [data-test='filterbar-action-buttons'] {
-              position: relative !important;
-              flex-direction: row !important;
-              width: 100% !important;
-              padding: ${theme.sizeUnit * 4}px !important;
-              background: ${theme.colorBgContainer} !important;
-              border-top: 1px solid ${theme.colorBorderSecondary} !important;
-              gap: ${theme.sizeUnit * 2}px !important;
-              bottom: auto !important;
-              left: auto !important;
-
-              .filter-apply-button {
-                margin-bottom: 0 !important;
-                flex: 1;
-              }
-              .filter-clear-all-button {
-                flex: 1;
-              }
-            }
-
-            /* Remove border-right and make full width */
-            [data-test='filter-bar'] {
-              position: relative;
-              width: 100% !important;
-              height: 100%;
-              border-right: none;
-
-              & > .open {
-                position: relative;
-                width: 100% !important;
-                height: 100%;
-                min-height: 100%;
-                border-right: none !important;
-                border-bottom: none !important;
-                display: flex;
-                flex-direction: column;
-              }
-            }
-          `}
         >
           <FilterBar
             orientation={FilterBarOrientation.Vertical}
@@ -842,6 +782,7 @@ const DashboardBuilder = () => {
               width: 300,
               height: '100%',
               offset: 0,
+              mobileMode: true,
             }}
             hidden={false}
           />

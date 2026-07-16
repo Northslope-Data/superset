@@ -469,7 +469,8 @@ const FilterBar: FC<FiltersBarProps> = ({
       );
       const pendingItems = (
         Object.values(pendingChartCustomizations).filter(Boolean) as (
-          ChartCustomization | ChartCustomizationDivider
+          | ChartCustomization
+          | ChartCustomizationDivider
         )[]
       ).filter(item => existingCustomizationIds.has(item.id));
 
@@ -680,6 +681,7 @@ const FilterBar: FC<FiltersBarProps> = ({
         }
         toggleFiltersBar={verticalConfig.toggleFiltersBar}
         width={verticalConfig.width}
+        mobileMode={verticalConfig.mobileMode}
         clearAllTriggers={clearAllTriggers}
         onClearAllComplete={handleClearAllComplete}
       />

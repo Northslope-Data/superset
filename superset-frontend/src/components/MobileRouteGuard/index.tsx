@@ -18,64 +18,38 @@
  */
 import { ReactNode, useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
-import { Grid } from '@superset-ui/core/components';
-import MobileUnsupported from 'src/pages/MobileUnsupported';
-
-const { useBreakpoint } = Grid;
-
-/**
- * Routes that are supported on mobile devices.
- * All other routes will show the MobileUnsupported page on mobile.
- */
-export const MOBILE_SUPPORTED_ROUTES: RegExp[] = [
-  // Authentication
-  /^\/login\/?$/,
-  /^\/logout\/?$/,
-  /^\/register\/?/,
-
-  // Welcome / Home page (including the legacy /superset-prefixed URL)
-  /^\/welcome\/?$/,
-  /^\/superset\/welcome\/?$/,
-
-  // Dashboard list and individual dashboards (including legacy URLs)
-  /^\/dashboard\/list\/?$/,
-  /^\/dashboard\/[^/]+\/?$/,
-  /^\/superset\/dashboard\/[^/]+\/?$/,
-
-  // The mobile unsupported page itself
-  /^\/mobile-unsupported\/?$/,
-
-  // User info
-  /^\/user_info\/?$/,
-];
-
-/**
- * Check if a given path is supported on mobile
- */
-export function isMobileSupportedRoute(path: string): boolean {
-  // Remove query string and hash for matching
-  const cleanPath = path.split(/[?#]/)[0];
-  return MOBILE_SUPPORTED_ROUTES.some(pattern => pattern.test(cleanPath));
-}
+import { useIsMobile } from 'src/hooks/useIsMobile';
+import MobileUnsupported, {
+  MOBILE_BYPASS_STORAGE_KEY,
+} from 'src/pages/MobileUnsupported';
 
 interface MobileRouteGuardProps {
   children: ReactNode;
+  /**
+   * Whether the wrapped route is part of the mobile consumption
+   * experience. Set via the `mobileSupported` flag on the route
+   * definition in `src/views/routes.tsx`.
+   */
+  mobileSupported?: boolean;
 }
 
 /**
- * A component that wraps route content and redirects to the
- * MobileUnsupported page when accessing non-mobile-friendly
- * routes on mobile devices.
+ * Wraps route content and shows the MobileUnsupported page when a
+ * non-mobile-friendly route is accessed on a small screen with
+ * MOBILE_CONSUMPTION_MODE enabled.
  *
- * Users can bypass this by clicking "Continue anyway" which
- * sets a sessionStorage flag.
+ * Users can bypass this by clicking "Continue anyway", which sets a
+ * sessionStorage flag for the rest of the browser session.
  */
-function MobileRouteGuard({ children }: MobileRouteGuardProps) {
-  const screens = useBreakpoint();
+function MobileRouteGuard({
+  children,
+  mobileSupported,
+}: MobileRouteGuardProps) {
+  const isMobile = useIsMobile();
   const location = useLocation();
   const [bypassEnabled, setBypassEnabled] = useState(() => {
     try {
-      return sessionStorage.getItem('mobile-bypass') === 'true';
+      return sessionStorage.getItem(MOBILE_BYPASS_STORAGE_KEY) === 'true';
     } catch {
       return false;
     }
@@ -84,30 +58,18 @@ function MobileRouteGuard({ children }: MobileRouteGuardProps) {
   // Check for bypass flag when location changes
   useEffect(() => {
     try {
-      const bypass = sessionStorage.getItem('mobile-bypass') === 'true';
+      const bypass =
+        sessionStorage.getItem(MOBILE_BYPASS_STORAGE_KEY) === 'true';
       setBypassEnabled(bypass);
     } catch {
       // Storage access denied, keep current state
     }
   }, [location.pathname]);
 
-  // Determine if we're on mobile (< md breakpoint = < 768px)
-  const isMobile = !screens.md;
-
-  // If not mobile, or bypass is enabled, render children normally
-  if (!isMobile || bypassEnabled) {
+  if (!isMobile || bypassEnabled || mobileSupported) {
     return <>{children}</>;
   }
 
-  // Check if the current route is mobile-supported
-  const isSupported = isMobileSupportedRoute(location.pathname);
-
-  // If route is supported on mobile, render children
-  if (isSupported) {
-    return <>{children}</>;
-  }
-
-  // Otherwise, show the mobile unsupported page
   return (
     <MobileUnsupported originalPath={location.pathname + location.search} />
   );

@@ -25,7 +25,8 @@ import {
   useRef,
   useState,
 } from 'react';
-import { styled } from '@apache-superset/core/theme';
+import { css, styled } from '@apache-superset/core/theme';
+import { isMobileConsumptionEnabled } from 'src/hooks/useIsMobile';
 import {
   LineEditableTabs,
   TabsProps as AntdTabsProps,
@@ -82,15 +83,19 @@ const StyledTabsContainer = styled.div<{ isDragging?: boolean }>`
     }
   `}
 
-  /* Sticky tabs on mobile */
-  @media (max-width: 767px) {
-    .ant-tabs-nav {
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      background-color: ${({ theme }) => theme.colorBgContainer};
-    }
-  }
+  /* Sticky tabs on mobile (consumption mode) */
+  ${({ theme }) =>
+    isMobileConsumptionEnabled() &&
+    css`
+      @media (max-width: ${theme.screenSMMax}px) {
+        .ant-tabs-nav {
+          position: sticky;
+          top: 0;
+          z-index: 100;
+          background-color: ${theme.colorBgContainer};
+        }
+      }
+    `}
 `;
 
 export interface TabItem {

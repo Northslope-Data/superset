@@ -43,9 +43,12 @@ jest.mock('antd', () => ({
   },
 }));
 
+// Enable only the mobile consumption mode flag so the mobile branch renders
 jest.mock('@superset-ui/core', () => ({
   ...jest.requireActual('@superset-ui/core'),
-  isFeatureEnabled: jest.fn().mockReturnValue(false),
+  isFeatureEnabled: jest.fn(
+    (flag: string) => flag === 'MOBILE_CONSUMPTION_MODE',
+  ),
 }));
 
 // API mocks

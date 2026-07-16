@@ -37,6 +37,7 @@ import {
 } from '@superset-ui/core/components';
 import { Icons } from '@superset-ui/core/components/Icons';
 import { MenuObjectProps } from 'src/types/bootstrapTypes';
+import { isMobileConsumptionEnabled } from 'src/hooks/useIsMobile';
 import { Typography } from '@superset-ui/core/components/Typography';
 
 const StyledHeader = styled.div<{ backgroundColor?: string }>`
@@ -109,32 +110,44 @@ const StyledHeader = styled.div<{ backgroundColor?: string }>`
   .btn-link {
     padding: 10px 0;
   }
-  @media (max-width: 767px) {
-    .header {
-      position: relative;
-      margin-left: 0;
-      flex: 1;
-      text-align: center;
-    }
+  ${({ theme }) =>
+    isMobileConsumptionEnabled()
+      ? css`
+          @media (max-width: ${theme.screenSMMax}px) {
+            .header {
+              position: relative;
+              margin-left: 0;
+              flex: 1;
+              text-align: center;
+            }
 
-    /* Hide all buttons on mobile */
-    .nav-right,
-    .nav-right-collapse {
-      display: none !important;
-    }
+            /* Consumption mode: hide all buttons on mobile */
+            .nav-right,
+            .nav-right-collapse {
+              display: none !important;
+            }
 
-    /* Compact horizontal tabs on mobile (segmented-control style) */
-    .menu > .ant-menu {
-      padding-left: 0;
+            /* Compact horizontal tabs on mobile (segmented-control style) */
+            .menu > .ant-menu {
+              padding-left: 0;
 
-      .ant-menu-item {
-        padding: ${({ theme }) => theme.sizeUnit}px
-          ${({ theme }) => theme.sizeUnit * 2}px;
-        margin-right: ${({ theme }) => theme.sizeUnit / 2}px;
-        font-size: ${({ theme }) => theme.fontSizeSM}px;
-      }
-    }
-  }
+              .ant-menu-item {
+                padding: ${theme.sizeUnit}px ${theme.sizeUnit * 2}px;
+                margin-right: ${theme.sizeUnit / 2}px;
+                font-size: ${theme.fontSizeSM}px;
+              }
+            }
+          }
+        `
+      : css`
+          @media (max-width: ${theme.screenSMMax}px) {
+            .header,
+            .nav-right {
+              position: relative;
+              margin-left: ${theme.sizeUnit * 2}px;
+            }
+          }
+        `}
 `;
 
 const styledDisabled = (theme: SupersetTheme) => css`
@@ -209,8 +222,16 @@ const SubMenuComponent: FunctionComponent<SubMenuProps> = props => {
 
     function handleResize() {
       if (!isMounted) return;
-      // Keep horizontal mode on mobile - CSS handles compact display
-      setMenu('horizontal');
+      // In consumption mode the tabs stay horizontal on mobile (the CSS
+      // renders them compact); otherwise fall back to the inline layout.
+      if (
+        !isMobileConsumptionEnabled() &&
+        window.innerWidth <= theme.screenSMMax
+      ) {
+        setMenu('inline');
+      } else {
+        setMenu('horizontal');
+      }
 
       if (
         props.buttons &&
@@ -234,7 +255,7 @@ const SubMenuComponent: FunctionComponent<SubMenuProps> = props => {
       resize.cancel();
       window.removeEventListener('resize', resize);
     };
-  }, [props.buttons]);
+  }, [props.buttons, theme.screenSMMax]);
 
   return (
     <StyledHeader backgroundColor={props.backgroundColor}>

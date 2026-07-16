@@ -36,10 +36,12 @@ import { AntdThemeProvider } from '@superset-ui/core/components';
 import { COLUMN_TYPE, ROW_TYPE } from 'src/dashboard/util/componentTypes';
 import {
   GRID_BASE_UNIT,
+  GRID_COLUMN_COUNT,
   GRID_GUTTER_SIZE,
   GRID_MIN_COLUMN_COUNT,
   GRID_MIN_ROW_UNITS,
 } from 'src/dashboard/util/constants';
+import { useIsMobile } from 'src/hooks/useIsMobile';
 
 export const CHART_MARGIN = 32;
 
@@ -96,6 +98,7 @@ const ChartHolder = ({
   isInView,
 }: ChartHolderProps) => {
   const theme = useTheme();
+  const isMobile = useIsMobile();
   const fullSizeStyle = css`
     && {
       position: fixed !important;
@@ -167,6 +170,14 @@ const ChartHolder = ({
   }, [outlinedComponentId]);
 
   const widthMultiple = useMemo(() => {
+    // Mobile consumption mode stacks charts vertically at full width, so
+    // report the full column count. This keeps the pixel width handed to the
+    // chart plugin (and to ResizableContainer's inline size) in sync with the
+    // stacked layout instead of the desktop grid fraction.
+    if (isMobile && !editMode) {
+      return GRID_COLUMN_COUNT;
+    }
+
     const columnParentWidth = getComponentById(
       parentComponent.parents?.find(parent => parent.startsWith(COLUMN_TYPE)),
     )?.meta?.width;
@@ -182,6 +193,8 @@ const ChartHolder = ({
   }, [
     component,
     getComponentById,
+    isMobile,
+    editMode,
     parentComponent.meta.width,
     parentComponent.parents,
     parentComponent.type,

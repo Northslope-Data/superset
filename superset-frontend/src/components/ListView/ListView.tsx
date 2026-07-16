@@ -76,14 +76,6 @@ const ListViewStyles = styled.div`
           column-gap: ${theme.sizeUnit * 2}px;
           row-gap: ${theme.sizeUnit * 2}px;
 
-          /* Hide desktop filters and sort on mobile when mobile drawer is used */
-          @media (max-width: 767px) {
-            .desktop-filters,
-            .desktop-sort {
-              display: none;
-            }
-          }
-
           /* Search input — fixed width/height matching pill height, label hidden */
           [data-test='search-filter-container'] {
             width: ${theme.sizeUnit * 44}px;
@@ -192,11 +184,6 @@ const ViewModeContainer = styled.div`
     padding-right: ${theme.sizeUnit * 4}px;
     white-space: nowrap;
     display: inline-block;
-
-    /* Hide view mode toggle on mobile - force card view */
-    @media (max-width: 767px) {
-      display: none;
-    }
 
     .toggle-button {
       display: inline-block;
@@ -507,7 +494,10 @@ export function ListView<T extends object = any>({
             <ViewModeToggle mode={viewMode} setMode={setViewMode} />
           )}
           <div className="controls" data-test="filters-select">
-            {/* On mobile, filters are shown in drawer; on desktop, show inline */}
+            {/* When a mobile drawer callback is provided, filters and sort
+                render inside the drawer instead of inline. Only one
+                FilterControls instance is ever mounted, so filtersRef and
+                filterControlsRef always point at the visible instance. */}
             {filterable && !setMobileFiltersOpen && (
               <FilterControls
                 ref={filterControlsRef}
@@ -516,28 +506,15 @@ export function ListView<T extends object = any>({
                 updateFilterValue={applyFilterValue}
               />
             )}
-            {filterable && setMobileFiltersOpen && (
-              <>
-                {/* Desktop: show inline filters */}
-                <div className="desktop-filters">
-                  <FilterControls
-                    ref={filterControlsRef}
-                    filters={filters}
-                    internalFilters={internalFilters}
-                    updateFilterValue={applyFilterValue}
-                  />
-                </div>
-              </>
-            )}
-            {viewMode === 'card' && cardSortSelectOptions && (
-              <div className="desktop-sort">
+            {viewMode === 'card' &&
+              cardSortSelectOptions &&
+              !setMobileFiltersOpen && (
                 <CardSortSelect
                   initialSort={sortBy}
                   onChange={(value: SortColumn[]) => setSortBy(value)}
                   options={cardSortSelectOptions}
                 />
-              </div>
-            )}
+              )}
             {filterable && (
               <Tooltip
                 title={!hasActiveFilters ? t('No filters applied') : undefined}

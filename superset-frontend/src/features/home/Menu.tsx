@@ -29,6 +29,7 @@ import { NavLink, useLocation } from 'react-router-dom';
 import { Icons } from '@superset-ui/core/components/Icons';
 import { Typography } from '@superset-ui/core/components/Typography';
 import { useUiConfig } from 'src/components/UiConfigContext';
+import { useIsMobile } from 'src/hooks/useIsMobile';
 import { URL_PARAMS } from 'src/constants';
 import {
   MenuObjectChildProps,
@@ -199,6 +200,7 @@ export function Menu({
   isFrontendRoute = () => false,
 }: MenuProps) {
   const screens = useBreakpoint();
+  const isMobile = useIsMobile();
   const uiConfig = useUiConfig();
   const theme = useTheme();
 
@@ -401,12 +403,12 @@ export function Menu({
     >
       <StyledRow>
         {/* Mobile: left placeholder for future icon */}
-        {!screens.md && <Col xs={4} />}
+        {isMobile && <Col xs={4} />}
         <StyledCol
           md={16}
-          xs={screens.md ? 24 : 16}
+          xs={isMobile ? 16 : 24}
           css={
-            !screens.md &&
+            isMobile &&
             css`
               justify-content: center;
             `
@@ -427,10 +429,10 @@ export function Menu({
               <span>{brand.text}</span>
             </StyledBrandText>
           )}
-          {/* Only show nav items on desktop */}
-          {screens.md && (
+          {/* Consumption mode: hide nav items on mobile (drawer holds them) */}
+          {!isMobile && (
             <StyledMainNav
-              mode="horizontal"
+              mode={screens.md ? 'horizontal' : 'inline'}
               data-test="navbar-top"
               className="main-nav"
               selectedKeys={activeTabs}
@@ -457,9 +459,9 @@ export function Menu({
             />
           )}
         </StyledCol>
-        <Col md={8} xs={screens.md ? 24 : 4}>
+        <Col md={8} xs={isMobile ? 4 : 24}>
           <RightMenu
-            align="flex-end"
+            align={screens.md || isMobile ? 'flex-end' : 'flex-start'}
             settings={settings}
             navbarRight={navbarRight}
             isFrontendRoute={isFrontendRoute}

@@ -26,8 +26,9 @@ import {
 } from '@superset-ui/core';
 import { styled } from '@apache-superset/core/theme';
 import rison from 'rison';
-import { Collapse, ListViewCard, Grid } from '@superset-ui/core/components';
+import { Collapse, ListViewCard } from '@superset-ui/core/components';
 import { User } from 'src/types/bootstrapTypes';
+import { useIsMobile } from 'src/hooks/useIsMobile';
 import { reject } from 'lodash-es';
 import {
   dangerouslyGetItemDoNotUse,
@@ -147,7 +148,7 @@ export const LoadingCards = ({ cover }: LoadingProps) => (
 );
 
 function Welcome({ user, addDangerToast }: WelcomeProps) {
-  const { md: isNotMobile = true } = Grid.useBreakpoint();
+  const isNotMobile = !useIsMobile();
   const canReadSavedQueries = userHasPermission(user, 'SavedQuery', 'can_read');
   const userid = user.userId;
   const id = userid!.toString(); // confident that user is not a guest user

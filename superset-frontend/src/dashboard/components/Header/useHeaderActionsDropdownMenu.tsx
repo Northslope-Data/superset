@@ -37,7 +37,7 @@ import { getUrlParam } from 'src/utils/urlUtils';
 import { MenuKeys, RootState } from 'src/dashboard/types';
 import { HeaderDropdownProps } from 'src/dashboard/components/Header/types';
 import { usePermissions } from 'src/hooks/usePermissions';
-import getOwnerName from 'src/utils/getOwnerName';
+import getUserName from 'src/utils/getUserName';
 
 export const useHeaderActionsMenu = ({
   customCss,
@@ -235,20 +235,22 @@ export const useHeaderActionsMenu = ({
         disabled: true,
       });
 
-      // Owner info
-      const ownerNames =
-        dashboardInfo?.owners?.length > 0
-          ? dashboardInfo.owners.map(getOwnerName).join(', ')
-          : t('None');
+      // Editor info
+      const editorNames = dashboardInfo?.editors?.length
+        ? dashboardInfo.editors
+            .map((editor: { label?: string }) => editor.label)
+            .filter(Boolean)
+            .join(', ')
+        : t('None');
       menuItems.push({
         key: 'owner-info',
-        label: t('Owner: %(names)s', { names: ownerNames }),
+        label: t('Owner: %(names)s', { names: editorNames }),
         disabled: true,
       });
 
       // Last modified
       const modifiedBy =
-        getOwnerName(dashboardInfo?.changed_by) || t('Not available');
+        getUserName(dashboardInfo?.changed_by) || t('Not available');
       const modifiedDate = dashboardInfo?.changed_on_delta_humanized || '';
       menuItems.push({
         key: 'modified-info',

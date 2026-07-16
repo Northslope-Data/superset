@@ -40,9 +40,9 @@ import {
   Tooltip,
   DeleteModal,
   UnsavedChangesModal,
-  Grid,
 } from '@superset-ui/core/components';
 import { findPermission } from 'src/utils/findPermission';
+import { useIsMobile } from 'src/hooks/useIsMobile';
 import { safeStringify } from 'src/utils/safeStringify';
 import Subject from 'src/types/Subject';
 import { DashboardLayout, RootState } from 'src/dashboard/types';
@@ -225,8 +225,6 @@ const discardChanges = () => {
   window.location.assign(url);
 };
 
-const { useBreakpoint } = Grid;
-
 interface HeaderComponentProps {
   onOpenMobileFilters?: () => void;
 }
@@ -234,8 +232,7 @@ interface HeaderComponentProps {
 const Header = ({ onOpenMobileFilters }: HeaderComponentProps): JSX.Element => {
   const dispatch = useDispatch();
   const theme = useTheme();
-  const screens = useBreakpoint();
-  const isMobile = !screens.md;
+  const isMobile = useIsMobile();
   const [didNotifyMaxUndoHistoryToast, setDidNotifyMaxUndoHistoryToast] =
     useState(false);
   const [emphasizeUndo, setEmphasizeUndo] = useState(false);

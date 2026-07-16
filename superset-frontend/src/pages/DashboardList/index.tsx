@@ -39,13 +39,13 @@ import Subject from 'src/types/Subject';
 import { SUBJECT_OPTION_FILTER_PROPS } from 'src/features/subjects/SubjectSelectLabel';
 import { SubjectPile } from 'src/features/subjects/SubjectPile';
 import { useListViewResource, useFavoriteStatus } from 'src/views/CRUD/hooks';
+import { useIsMobile } from 'src/hooks/useIsMobile';
 import {
   Button,
   CertifiedBadge,
   ConfirmStatusChange,
   DeleteModal,
   FaveStar,
-  Grid,
   InfoTooltip,
   Loading,
   PublishedLabel,
@@ -177,12 +177,7 @@ const DASHBOARD_COLUMNS_TO_FETCH = [
 
 function DashboardList(props: DashboardListProps) {
   const { addDangerToast, addSuccessToast, user } = props;
-  // Default to desktop layout on the initial render before antd's
-  // ResponsiveObserver has fired. Without the default, the first paint sees
-  // `md: undefined`, treats it as mobile, and force-renders card view — which
-  // then sticks because useListViewState's forceViewMode effect only updates
-  // viewMode when forceViewMode is truthy.
-  const { md: isNotMobile = true } = Grid.useBreakpoint();
+  const isNotMobile = !useIsMobile();
   const theme = useTheme();
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const { roles } = useSelector<any, UserWithPermissionsAndRoles>(
@@ -945,7 +940,9 @@ function DashboardList(props: DashboardListProps) {
                 enableBulkTag={enableBulkTag}
                 bulkTagResourceName="dashboard"
                 mobileFiltersOpen={mobileFiltersOpen}
-                setMobileFiltersOpen={setMobileFiltersOpen}
+                setMobileFiltersOpen={
+                  !isNotMobile ? setMobileFiltersOpen : undefined
+                }
                 mobileFiltersDrawerTitle={t('Search Dashboards')}
               />
             </>

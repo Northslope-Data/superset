@@ -25,6 +25,7 @@ import { useSelector } from 'react-redux';
 import { useDragDropManager } from 'react-dnd';
 import classNames from 'classnames';
 import { debounce } from 'lodash-es';
+import { isMobileConsumptionEnabled } from 'src/hooks/useIsMobile';
 
 const StyledDiv = styled.div`
   ${({ theme }) => css`
@@ -111,20 +112,10 @@ const StyledDiv = styled.div`
       color: ${theme.colorWarning};
     }
 
-    /* Mobile: consumption-only mode */
-    @media (max-width: 767px) {
-      /* Hide chart kebab menu (SliceHeaderControls) */
-      [data-test='slice-header'] .header-controls [id$='-controls'] {
-        display: none;
-      }
-
-      /* Disable chart title links - make them plain text */
-      [data-test='slice-header'] .header-title a {
-        pointer-events: none;
-        text-decoration: none !important;
-      }
-
-      /* Show full chart title without truncation - no tooltip needed */
+    /* Mobile consumption mode: show the full chart title without
+       truncation (controls and links are render-gated in SliceHeader) */
+    ${isMobileConsumptionEnabled()
+      ? `@media (max-width: ${theme.screenSMMax}px) {
       [data-test='slice-header'] .header-title {
         -webkit-line-clamp: unset;
         display: block;
@@ -132,7 +123,8 @@ const StyledDiv = styled.div`
         overflow: visible;
         text-overflow: unset;
       }
-    }
+    }`
+      : ''}
   `}
 `;
 

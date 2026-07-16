@@ -25,6 +25,9 @@ import { Icons } from '@superset-ui/core/components/Icons';
 
 const { useBreakpoint } = Grid;
 
+/** sessionStorage key for the "Continue anyway" mobile bypass */
+export const MOBILE_BYPASS_STORAGE_KEY = 'mobile-bypass';
+
 interface MobileUnsupportedProps {
   /** The original path the user was trying to access */
   originalPath?: string;
@@ -40,11 +43,7 @@ function MobileUnsupported({ originalPath }: MobileUnsupportedProps) {
   const location = useLocation();
   const screens = useBreakpoint();
 
-  // Get the original path from props or query params
-  const fromPath =
-    originalPath ||
-    new URLSearchParams(location.search).get('from') ||
-    location.pathname;
+  const fromPath = originalPath || location.pathname;
 
   const handleViewDashboards = useCallback(() => {
     history.push('/dashboard/list/');
@@ -57,7 +56,7 @@ function MobileUnsupported({ originalPath }: MobileUnsupportedProps) {
   const handleContinueAnyway = useCallback(() => {
     // Store preference in sessionStorage so we don't keep redirecting
     try {
-      sessionStorage.setItem('mobile-bypass', 'true');
+      sessionStorage.setItem(MOBILE_BYPASS_STORAGE_KEY, 'true');
     } catch {
       // Storage access denied, continue anyway without persisting
     }
@@ -164,26 +163,16 @@ function MobileUnsupported({ originalPath }: MobileUnsupportedProps) {
       </div>
 
       {/* Continue anyway link */}
-      <button
-        type="button"
+      <Button
+        buttonStyle="link"
         onClick={handleContinueAnyway}
         css={css`
-          background: none;
-          border: none;
-          color: ${theme.colorPrimary};
-          font-size: ${theme.fontSizeSM}px;
-          cursor: pointer;
-          padding: ${theme.sizeUnit * 2}px ${theme.sizeUnit * 3}px;
           margin-top: ${theme.sizeUnit * 4}px;
-          text-decoration: underline;
-
-          &:hover {
-            color: ${theme.colorPrimaryHover};
-          }
         `}
       >
-        {t('Continue anyway')} →
-      </button>
+        {t('Continue anyway')}
+        <Icons.ArrowRightOutlined iconSize="s" />
+      </Button>
 
       {/* Show hint if screen is now larger */}
       {isNotMobile && (
@@ -195,20 +184,9 @@ function MobileUnsupported({ originalPath }: MobileUnsupportedProps) {
           `}
         >
           {t('Your screen is now large enough.')}
-          <button
-            type="button"
-            onClick={handleContinueAnyway}
-            css={css`
-              background: none;
-              border: none;
-              color: ${theme.colorPrimary};
-              cursor: pointer;
-              padding: 0 ${theme.sizeUnit}px;
-              text-decoration: underline;
-            `}
-          >
+          <Button buttonStyle="link" onClick={handleContinueAnyway}>
             {t('Continue to page')}
-          </button>
+          </Button>
         </p>
       )}
     </div>

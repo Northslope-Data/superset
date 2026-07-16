@@ -92,21 +92,29 @@ const RouteSwitch = () => {
   const theme = useTheme();
   return (
     <Switch>
-      {routes.map(({ path, Component, props = {}, Fallback = Loading }) => (
-        <Route path={path} key={path}>
-          <Suspense fallback={<Fallback />}>
-            <MobileRouteGuard>
-              <ErrorBoundary
-                css={css`
-                  margin: ${theme.sizeUnit * 4}px;
-                `}
-              >
-                <Component user={bootstrapData.user} {...props} />
-              </ErrorBoundary>
-            </MobileRouteGuard>
-          </Suspense>
-        </Route>
-      ))}
+      {routes.map(
+        ({
+          path,
+          Component,
+          props = {},
+          Fallback = Loading,
+          mobileSupported,
+        }) => (
+          <Route path={path} key={path}>
+            <Suspense fallback={<Fallback />}>
+              <MobileRouteGuard mobileSupported={mobileSupported}>
+                <ErrorBoundary
+                  css={css`
+                    margin: ${theme.sizeUnit * 4}px;
+                  `}
+                >
+                  <Component user={bootstrapData.user} {...props} />
+                </ErrorBoundary>
+              </MobileRouteGuard>
+            </Suspense>
+          </Route>
+        ),
+      )}
       <Redirect from="/" to="/welcome/" exact />
     </Switch>
   );
