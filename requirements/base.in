@@ -42,9 +42,8 @@ pillow>=12.3.0,<13.0.0
 # -> https://github.com/aio-libs/async-timeout/blob/master/CHANGES.rst#500-2024-10-31
 async_timeout>=4.0.0,<5.0.0
 
-# Known issue with 6.7.0 breaking a unit test, probably easy to fix, but will require
-# a bit of attention to bump.
-apispec>=6.0.0,<6.7.0
+# Flask-AppBuilder 5.2.2 allows apispec<7; kept below 7.0.0 until that bound is lifted.
+apispec>=6.0.0,<7.0.0
 
 # 1.4.1 introduced a memory regression that exhausts memory in the test suite
 # (https://github.com/marshmallow-code/marshmallow-sqlalchemy/issues/665). 1.4.2
