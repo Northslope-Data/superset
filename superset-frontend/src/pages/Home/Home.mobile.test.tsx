@@ -28,20 +28,7 @@ import fetchMock from 'fetch-mock';
 import { render, screen, waitFor } from 'spec/helpers/testing-library';
 import Welcome from 'src/pages/Home';
 
-// Mock useBreakpoint to return MOBILE breakpoints
-jest.mock('antd', () => ({
-  ...jest.requireActual('antd'),
-  Grid: {
-    ...jest.requireActual('antd').Grid,
-    useBreakpoint: () => ({
-      xs: true,
-      sm: true,
-      md: false, // Mobile: md is false
-      lg: false,
-      xl: false,
-    }),
-  },
-}));
+import { mockMobileMatchMedia } from 'spec/helpers/mobileTestUtils';
 
 // Enable only the mobile consumption mode flag so the mobile branch renders
 jest.mock('@superset-ui/core', () => ({
@@ -50,6 +37,9 @@ jest.mock('@superset-ui/core', () => ({
     (flag: string) => flag === 'MOBILE_CONSUMPTION_MODE',
   ),
 }));
+
+// Simulate a mobile viewport for the useIsMobile hook
+mockMobileMatchMedia();
 
 // API mocks
 const chartsEndpoint = 'glob:*/api/v1/chart/?*';

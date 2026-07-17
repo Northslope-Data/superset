@@ -16,8 +16,12 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+import { useEffect, useState } from 'react';
 import { FeatureFlag, isFeatureEnabled } from '@superset-ui/core';
-import { Grid } from '@superset-ui/core/components';
+import { useTheme } from '@apache-superset/core/theme';
+
+// Matches antd's screenSMMax token; used only when no theme is in scope.
+const FALLBACK_MOBILE_MAX_WIDTH = 767;
 
 /**
  * Whether the mobile consumption-only experience is enabled for this
@@ -29,16 +33,39 @@ export function isMobileConsumptionEnabled(): boolean {
 }
 
 /**
- * Returns true when the viewport is below antd's `md` breakpoint AND the
- * MOBILE_CONSUMPTION_MODE feature flag is enabled. All mobile-specific
+ * Returns true when MOBILE_CONSUMPTION_MODE is enabled AND the viewport is
+ * at or below the theme's `screenSMMax` breakpoint. All mobile-specific
  * behavior (route guarding, consumption-only chrome, drawer navigation)
  * should key off this hook so the flag remains a single kill switch.
  *
- * Defaults to desktop on the first render, before antd's
- * ResponsiveObserver has fired, so the initial paint never takes the
- * mobile branch by accident.
+ * The matchMedia subscription is only installed when the flag is on, and
+ * state only changes when the match flips, so with the flag off (or on
+ * desktop) this hook never causes a re-render — consumers are inert.
+ *
+ * The initial value is always false (desktop), so the first paint never
+ * takes the mobile branch by accident.
  */
 export function useIsMobile(): boolean {
-  const { md = true } = Grid.useBreakpoint();
-  return !md && isMobileConsumptionEnabled();
+  const enabled = isMobileConsumptionEnabled();
+  const theme = useTheme();
+  const maxWidth = theme?.screenSMMax ?? FALLBACK_MOBILE_MAX_WIDTH;
+  const [isSmallScreen, setIsSmallScreen] = useState(false);
+
+  useEffect(() => {
+    if (!enabled) {
+      return undefined;
+    }
+    const mediaQuery = window.matchMedia(`(max-width: ${maxWidth}px)`);
+    const update = () => setIsSmallScreen(mediaQuery.matches);
+    update();
+    // Safari < 14 lacks addEventListener on MediaQueryList
+    if (mediaQuery.addEventListener) {
+      mediaQuery.addEventListener('change', update);
+      return () => mediaQuery.removeEventListener('change', update);
+    }
+    mediaQuery.addListener(update);
+    return () => mediaQuery.removeListener(update);
+  }, [enabled, maxWidth]);
+
+  return enabled && isSmallScreen;
 }

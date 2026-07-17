@@ -83,8 +83,37 @@ export const mockAntdWithDesktopBreakpoint = () => ({
 });
 
 /**
+ * Mocks window.matchMedia so `(max-width: ...)` queries match, simulating
+ * a mobile viewport for the useIsMobile hook. Returns a cleanup function
+ * restoring the previous matchMedia. Mobile behavior requires BOTH this
+ * AND the MOBILE_CONSUMPTION_MODE flag (see enableMobileConsumptionFlag).
+ */
+export const mockMobileMatchMedia = () => {
+  const previous = window.matchMedia;
+  Object.defineProperty(window, 'matchMedia', {
+    writable: true,
+    value: jest.fn().mockImplementation((query: string) => ({
+      matches: query.includes('max-width'),
+      media: query,
+      onchange: null,
+      addListener: jest.fn(),
+      removeListener: jest.fn(),
+      addEventListener: jest.fn(),
+      removeEventListener: jest.fn(),
+      dispatchEvent: jest.fn(),
+    })),
+  });
+  return () => {
+    Object.defineProperty(window, 'matchMedia', {
+      writable: true,
+      value: previous,
+    });
+  };
+};
+
+/**
  * Enables the MOBILE_CONSUMPTION_MODE feature flag on window.featureFlags.
- * Mobile behavior requires BOTH a small viewport (mock Grid.useBreakpoint)
+ * Mobile behavior requires BOTH a small viewport (mockMobileMatchMedia)
  * AND this flag; call this in beforeAll/beforeEach of mobile test suites.
  * Returns a cleanup function restoring the previous flags.
  */

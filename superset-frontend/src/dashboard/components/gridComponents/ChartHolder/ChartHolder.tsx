@@ -45,6 +45,10 @@ import { useIsMobile } from 'src/hooks/useIsMobile';
 
 export const CHART_MARGIN = 32;
 
+// Vertical space reserved for app chrome (main nav + dashboard header +
+// tab bar) when capping chart heights to the viewport on mobile.
+export const MOBILE_CHROME_HEIGHT = 160;
+
 export interface ChartHolderProps {
   id: string;
   parentId: string;
@@ -200,6 +204,22 @@ const ChartHolder = ({
     parentComponent.type,
   ]);
 
+  // Grid units of height for this chart. In mobile consumption mode the
+  // authored desktop height is capped to the viewport (minus app chrome) so
+  // tall charts don't dominate the single-column stacked layout. Used for
+  // both the ResizableContainer shell and the height handed to the plugin,
+  // so the two can't disagree.
+  const heightMultiple = useMemo(() => {
+    const authoredHeight = component.meta.height ?? GRID_MIN_ROW_UNITS;
+    if (isMobile && !editMode) {
+      const maxUnits = Math.floor(
+        (window.innerHeight - MOBILE_CHROME_HEIGHT) / GRID_BASE_UNIT,
+      );
+      return Math.max(GRID_MIN_ROW_UNITS, Math.min(authoredHeight, maxUnits));
+    }
+    return authoredHeight;
+  }, [component.meta.height, isMobile, editMode]);
+
   const { chartWidth, chartHeight } = useMemo(() => {
     let width = 0;
     let height = 0;
@@ -213,16 +233,14 @@ const ChartHolder = ({
           (widthMultiple - 1) * GRID_GUTTER_SIZE -
           CHART_MARGIN,
       );
-      height = Math.floor(
-        (component.meta.height ?? 0) * GRID_BASE_UNIT - CHART_MARGIN,
-      );
+      height = Math.floor(heightMultiple * GRID_BASE_UNIT - CHART_MARGIN);
     }
 
     return {
       chartWidth: width,
       chartHeight: height,
     };
-  }, [columnWidth, component, isFullSize, widthMultiple]);
+  }, [columnWidth, heightMultiple, isFullSize, widthMultiple]);
 
   const handleDeleteComponent = useCallback(() => {
     deleteComponent(id, parentId);
@@ -263,7 +281,7 @@ const ChartHolder = ({
         widthStep={columnWidth}
         widthMultiple={widthMultiple}
         heightStep={GRID_BASE_UNIT}
-        heightMultiple={component.meta.height ?? GRID_MIN_ROW_UNITS}
+        heightMultiple={heightMultiple}
         minWidthMultiple={GRID_MIN_COLUMN_COUNT}
         minHeightMultiple={GRID_MIN_ROW_UNITS}
         maxWidthMultiple={availableColumnCount + widthMultiple}
@@ -355,12 +373,12 @@ const ChartHolder = ({
     ),
     [
       component.id,
-      component.meta.height,
       component.meta.chartId,
       component.meta.sliceNameOverride,
       component.meta.sliceName,
       parentComponent.type,
       columnWidth,
+      heightMultiple,
       widthMultiple,
       availableColumnCount,
       onResizeStart,
