@@ -643,7 +643,8 @@ const Header = ({ onOpenMobileFilters }: HeaderComponentProps): JSX.Element => {
 
   const titlePanelAdditionalItems = useMemo(
     () => [
-      !editMode && (
+      // The kebab menu's "Refresh dashboard" item covers this on mobile
+      !editMode && !isMobile && (
         <RefreshButton key="refresh-button" onRefresh={forceRefresh} />
       ),
       !editMode && (
