@@ -17,14 +17,14 @@
 """Tests for datetime format detection and warning suppression."""
 
 import warnings
-from datetime import datetime
+from datetime import datetime, timezone
 
 import pandas as pd
 import pytest
 import pytz
 
 from superset.utils.core import DateColumn, normalize_dttm_col
-from superset.utils.dates import datetime_to_epoch
+from superset.utils.dates import datetime_to_epoch, now_as_float
 from superset.utils.pandas import detect_datetime_format
 
 
@@ -334,6 +334,16 @@ def test_datetime_to_epoch_microsecond_precision():
     assert result == expected, (
         f"Microseconds should contribute to result, got {result}ms"
     )
+
+
+def test_now_as_float_matches_current_utc():
+    """now_as_float() returns current UTC time as epoch milliseconds."""
+    before = datetime_to_epoch(datetime.now(timezone.utc))
+    result = now_as_float()
+    after = datetime_to_epoch(datetime.now(timezone.utc))
+
+    assert isinstance(result, float)
+    assert before <= result <= after
 
 
 def test_datetime_to_epoch_far_future():
