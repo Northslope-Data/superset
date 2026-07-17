@@ -1,0 +1,78 @@
+name: foreman-verify
+
+# Maintainer-owned verification gate for the devin-foreman remediation pipeline.
+# This file is version-controlled here and installed on the fork at
+# .github/workflows/foreman-verify.yml. The agent's diff scope hard-blocks
+# `.github/**`, so a Devin PR can never alter this gate. The pipeline marks a task
+# merge-ready ONLY when this check reports success at the pull request's HEAD SHA; a
+# skipped or missing check is never treated as green.
+#
+# Trigger is `push` (not `pull_request`) on purpose:
+#   * For pull_request events GitHub attributes the check run to the synthetic merge
+#     commit (refs/pull/N/merge), NOT the PR head SHA the verifier queries — so the
+#     check would never be found at the head, and no task could reach merge-ready.
+#     A push run is attributed to the branch head SHA, which is exactly what the
+#     verifier and branch protection evaluate.
+#   * Devin pushes its branches into THIS fork, so a push event always fires; and only
+#     writers to this fork (us + the Devin app) can trigger it — an untrusted external
+#     PR from another fork cannot run code on our runner.
+# We skip `master` (post-merge runs would be pure noise) and omit `workflow_dispatch`
+# (a manual run must not be mistakable for the head-SHA gate).
+#
+# Apache Superset's native CI is provisioned only for apache/superset (repo-name and
+# secret gated); on a fork it is skipped/red for reasons unrelated to a change. So we
+# gate on a fast, deterministic check the maintainer owns: the pinned third-party lock
+# resolves as a set, pyproject.toml parses, and the application + test code byte-
+# compiles. Behavioral/test-level proof is carried by the agent's structured output.
+
+on:
+  push:
+    branches-ignore:
+      - master
+    paths:
+      - "requirements/**"
+      - "pyproject.toml"
+      - "superset/**"
+      - "tests/**"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: foreman-verify-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: foreman-verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Dependency lock resolves at pinned versions
+        run: |
+          set -euo pipefail
+          # Strip the one editable local package (-e ./superset-core); verify the
+          # fully ==-pinned third-party set still resolves together. --dry-run runs the
+          # resolver and exits non-zero on any conflict / missing distribution /
+          # Requires-Python mismatch, without installing. The runner's pip (from
+          # setup-python) already supports --dry-run, so we do not mutate it; retries
+          # ride out transient index blips.
+          grep -vE '^[[:space:]]*-e ' requirements/base.txt > /tmp/thirdparty.txt
+          python -m pip install --retries 8 --timeout 30 \
+            --dry-run --ignore-installed -r /tmp/thirdparty.txt
+
+      - name: pyproject.toml parses and code byte-compiles
+        run: |
+          set -euo pipefail
+          python -c 'import tomllib; tomllib.load(open("pyproject.toml", "rb"))'
+          python -m compileall -q superset tests
